@@ -45,6 +45,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Andres\source\repos\ApprovalViewerCustom\repos.pcfproj" />
+    <ProjectReference Include="..\..\..\..\..\..\Andres\source\repos\ApprovalViewerCustom\approvalViewer\repos.pcfproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />

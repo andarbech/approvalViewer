@@ -18,6 +18,8 @@ export interface ITableRow {
     key: string,
     name: string | undefined,
     status: JSX.Element | undefined,
+    dateOfSend: string | undefined,
+    dateOfResponse: string | undefined,
     comments: string | undefined,
 }
 
@@ -55,8 +57,28 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
             data: 'string',
             isPadded: true,
         },
-        { //comments
+        { //Date Requested
             key: 'col3',
+            name: 'dateOfSend',
+            fieldName: 'dateOfSend',
+            minWidth: 210,
+            maxWidth: 350,
+            isRowHeader: true,
+            data: 'string',
+            isPadded: true,
+        },
+        { //DateApproved
+            key: 'col4',
+            name: 'dateOfResponse',
+            fieldName: 'dateOfResponse',
+            minWidth: 210,
+            maxWidth: 350,
+            isRowHeader: true,
+            data: 'string',
+            isPadded: true,
+        },
+        { //comments
+            key: 'col5',
             name: 'Comments',
             fieldName: 'comments',
             minWidth: 210,
@@ -72,14 +94,14 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
             isPadded: true,
         },
     ] as IColumn[]);
-
-
+    
+    
     // ### LIFECYCLE
     useEffect(() => {
         init();
     }, []);
-
-
+    
+    
     // ### VARS
     // @ts-ignore
     const recordGuid:string =  _context.page.entityId;
@@ -120,10 +142,11 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         //getApprovalRequests & setApprovalState
         //date of send= "createdon": "2022-04-20T10:15:56Z",
         //https://staging-teixeiraeneto.crm4.dynamics.com/api/data/v9.2/msdyn_flow_approvalrequests
-        //create new git
         
-        await _context.webAPI.retrieveMultipleRecords("msdyn_flow_approvalrequests",`?$filter=_msdyn_flow_approvalrequest_approval_value eq ${approvalBag.boundLookupId} &$select=_ownerid_value,createdon&$expand=msdyn_flow_approvalrequest_approval($select=msdyn_flow_approval_result)`).then(
+        await _context.webAPI.retrieveMultipleRecords("msdyn_flow_approvalrequest",`?$filter=_msdyn_flow_approvalrequest_approval_value eq  ${approvalBag.boundLookupId} &$select=_ownerid_value,createdon&$expand=msdyn_flow_approvalrequest_approval($select=msdyn_flow_approval_result)`).then(
+           
             function success(result) {
+                console.log(result.entities)
                 approvalBag.requests = result.entities;
                 if (approvalBag.requests.length !== 0) {
                     const approvalResult:string | null = approvalBag.requests[0].msdyn_flow_approvalrequest_approval.msdyn_flow_approval_result;
@@ -145,8 +168,9 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         //getApprovalResponse
         // date of response = "createdon": "2022-04-20T10:16:43Z",
         //https://staging-teixeiraeneto.crm4.dynamics.com/api/data/v9.2/msdyn_flow_approvalresponses
-        await _context.webAPI.retrieveMultipleRecords("msdyn_flow_approvalresponses",`?$filter=_msdyn_flow_approvalresponse_approval_value eq ${approvalBag.boundLookupId} &$select=_ownerid_value,createdon,msdyn_flow_approvalresponse_response,msdyn_flow_approvalresponse_comments`).then(
+        await _context.webAPI.retrieveMultipleRecords("msdyn_flow_approvalresponse",`?$filter=_msdyn_flow_approvalresponse_approval_value eq  ${approvalBag.boundLookupId} &$select=_ownerid_value,createdon,msdyn_flow_approvalresponse_response,msdyn_flow_approvalresponse_comments`).then(
             function success(result) {
+                console.log(result.entities)
                 approvalBag.responses = result.entities;
             },
             function error(error) {
@@ -163,10 +187,10 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
             return {
                 key: index.toString(),
                 name: e['_ownerid_value@OData.Community.Display.V1.FormattedValue'],
+                dateOfResponse: e['createdon@OData.Community.Display.V1.FormattedValue'],
+                dateOfSend: getDateOfSend(e['_ownerid_value'],approvalBag.requests),
                 status: getStatusIcon(e['_ownerid_value'], approvalBag.responses),
                 comments: getApproverComments(e['_ownerid_value'], approvalBag.responses),
-                dateOfSend:"",
-                dateOfResponse: ""
             };
         });
 
@@ -174,7 +198,23 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         setTableDataMasterState(approvalGridArray);
         setIsLoadingState(false);
     };
-
+    const getDateOfSend = (
+        guid:string,
+        respArr: ComponentFramework.WebApi.Entity[]
+    ) : string | undefined => {
+        try {
+            const responseItem = respArr.find((e) => e['_ownerid_value'] === guid);
+            if (responseItem) {
+                return responseItem!['createdon@OData.Community.Display.V1.FormattedValue'].toString();
+            } else {
+                return '#N/A'
+            };
+        }
+        catch(error) {
+            console.error('Group Approval Viewer - Retrieve Approval Response Error', error);
+        }
+    };
+    
     const getStatusIcon = (
         guid:string,
         respArr: ComponentFramework.WebApi.Entity[]
@@ -205,7 +245,7 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         try {
             const responseItem = respArr.find((e) => e['_ownerid_value'] === guid);
             if (responseItem) {
-                return responseItem!['msdyn_flow_approvalresponse_comments'].toString();
+                return responseItem!['msdyn_flow_approvalresponse_comments']?.toString();
             } else {
                 return '#N/A'
             };
