@@ -45,6 +45,7 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
             sortDescendingAriaLabel: 'Sorted Z to A',
             data: 'string',
             isPadded: true,
+            
         },
         { //status
             key: 'col2',
@@ -59,7 +60,7 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         },
         { //Date Requested
             key: 'col3',
-            name: 'dateOfSend',
+            name: 'Date Of Send',
             fieldName: 'dateOfSend',
             minWidth: 210,
             maxWidth: 350,
@@ -69,7 +70,7 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         },
         { //DateApproved
             key: 'col4',
-            name: 'dateOfResponse',
+            name: 'Date Of Response',
             fieldName: 'dateOfResponse',
             minWidth: 210,
             maxWidth: 350,
