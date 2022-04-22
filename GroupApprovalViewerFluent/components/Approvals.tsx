@@ -188,8 +188,8 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
             return {
                 key: index.toString(),
                 name: e['_ownerid_value@OData.Community.Display.V1.FormattedValue'],
-                dateOfResponse: e['createdon@OData.Community.Display.V1.FormattedValue'],
                 dateOfSend: getDateOfSend(e['_ownerid_value'],approvalBag.requests),
+                dateOfResponse:getDateOfResponse(e['_ownerid_value'],approvalBag.responses),
                 status: getStatusIcon(e['_ownerid_value'], approvalBag.responses),
                 comments: getApproverComments(e['_ownerid_value'], approvalBag.responses),
             };
@@ -199,6 +199,7 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
         setTableDataMasterState(approvalGridArray);
         setIsLoadingState(false);
     };
+
     const getDateOfSend = (
         guid:string,
         respArr: ComponentFramework.WebApi.Entity[]
@@ -215,7 +216,26 @@ export const Approvals = (_context: ComponentFramework.Context<IInputs>) => {
             console.error('Group Approval Viewer - Retrieve Approval Response Error', error);
         }
     };
+    const getDateOfResponse = (
+        guid:string,
+        respArr: ComponentFramework.WebApi.Entity[]
+    ) : string | undefined => {
+        try {
+            const responseItem = respArr.find((e) => e['_ownerid_value'] === guid);
+            if (responseItem) {
+                return responseItem!['createdon@OData.Community.Display.V1.FormattedValue'].toString();
+            } else {
+                return '#N/A'
+            };
+        }
+        catch(error) {
+            console.error('Group Approval Viewer - Retrieve Approval Response Error', error);
+        }
+    };
     
+
+    
+
     const getStatusIcon = (
         guid:string,
         respArr: ComponentFramework.WebApi.Entity[]
